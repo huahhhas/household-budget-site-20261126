@@ -1,3 +1,6 @@
+// HomeLedger — a household budget site: this main.ts hands in the site in app/ together with
+// its screenshots/ captures, and writes the dossier.json summary the judge reads. The check
+// at the bottom re-reads that dossier and prints its screenshot count and byte length.
 // A working best-site-01 entry (Node 22, standard library only): the site is this directory's app/ folder, plain
 // static files a browser opens at app/index.html (ES modules, CSS, no build step), its content held in its own files:
 // nothing it runs, styles or shows loads over the network. The program hands it in: it copies app/ and screenshots/
@@ -18,6 +21,7 @@ import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-frontend.ts';
+import { readFileSync } from 'node:fs';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
@@ -34,3 +38,9 @@ writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, app_max_files: 993, app_max_bytes: 16777216 }),
 );
+
+// Verify the dossier just written: read it back, parse it, and print a one-line summary
+// (screenshot count and byte length). Read-only — this changes no output file.
+const dossierText = readFileSync(join(out, 'dossier.json'), 'utf8');
+const dossier = JSON.parse(dossierText) as { images?: unknown[] };
+console.log(`HomeLedger dossier: ${dossier.images?.length ?? 0} screenshots, ${dossierText.length} bytes`);
