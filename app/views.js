@@ -9,6 +9,7 @@ import { TIPS } from './data.js';
 export function render(month) {
   const totals = monthTotals(month);
   const byCat = spendingByCategory(month);
+  const topCats = byCat.filter((c) => c.spent > 0);
   const budgets = budgetStatus(month).sort((a, b) => b.pct - a.pct).slice(0, 4);
   const recent = transactionsFor(month).slice(0, 6);
   const bills = billsFor(month, 26).filter((b) => !b.paid).slice(0, 3);
@@ -32,9 +33,9 @@ export function render(month) {
     <div class="card">
       <h2>Where the money went</h2>
       <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
-        ${donut(byCat.filter((c) => c.spent > 0).slice(0, 8))}
+        ${donut(topCats.map((c) => ({ label: c.name, value: c.spent, color: c.color })))}
         <div class="legend" style="flex:1; min-width:180px;">
-          ${byCat.filter((c) => c.spent > 0).slice(0, 8).map((c) => `<span><span class="cat-dot" style="background:${c.color}"></span>${escapeHtml(c.name)} — ${money(c.spent)}</span>`).join('')}
+          ${topCats.map((c) => `<span><span class="cat-dot" style="background:${c.color}"></span>${escapeHtml(c.name)} — ${money(c.spent)}</span>`).join('')}
         </div>
       </div>
       <div class="chart-wrap">${horizontalBars(byCat.filter((c) => c.spent > 0).slice(0, 6).map((c) => ({ label: c.name, value: c.spent, color: c.color })))}</div>
